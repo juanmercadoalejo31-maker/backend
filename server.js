@@ -1,4 +1,4 @@
-// server.js - VERSIÓN ACTUALIZADA SIN IA
+// server.js - VERSIÓN ACTUALIZADA CON CORS PARA PRODUCCIÓN
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
@@ -29,13 +29,27 @@ const app = express();
 // MIDDLEWARES
 // ============================================
 
-// CORS - Configurado para desarrollo
+// ============================================
+// CONFIGURACIÓN CORS - ¡SOLUCIÓN DEFINITIVA!
+// ============================================
+
+// Permitir todas las origins (para producción)
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173'],
+  origin: '*', // ← PERMITE TODAS LAS ORIGINS
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: [
+    'Content-Type', 
+    'Authorization', 
+    'Accept', 
+    'Origin', 
+    'X-Requested-With'
+  ],
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  optionsSuccessStatus: 200
 }));
+
+// Manejar explícitamente las peticiones OPTIONS (preflight)
+app.options('*', cors());
 
 // Parsear JSON
 app.use(express.json());
@@ -46,6 +60,9 @@ app.use((req, res, next) => {
   console.log(`📡 ${req.method} ${req.url}`);
   if (req.headers.authorization) {
     console.log('🔑 Token presente:', req.headers.authorization.substring(0, 30) + '...');
+  }
+  if (req.method === 'POST' || req.method === 'PUT') {
+    console.log('📦 Body:', req.body);
   }
   next();
 });
@@ -59,6 +76,7 @@ app.get("/", (req, res) => {
     mensaje: "API GlucoControl funcionando",
     version: "1.0.0",
     modo: "SIN IA - Respuestas predefinidas",
+    cors: "Habilitado para todas las origins",
     endpoints: {
       auth: "/api/auth",
       glucosa: "/api/glucosa",
@@ -77,7 +95,8 @@ app.get("/api/health", (req, res) => {
     status: "ok",
     timestamp: new Date().toISOString(),
     modo: "sin_ia",
-    database: "connected"
+    database: "connected",
+    cors: "enabled"
   });
 });
 
@@ -162,5 +181,6 @@ app.listen(PORT, () => {
   console.log(`   GET  /api/ia/test               - Probar chat`);
   console.log("========================================");
   console.log("🤖 MODO: SIN IA - Respuestas predefinidas");
+  console.log("🌐 CORS: Habilitado para todas las origins");
   console.log("========================================\n");
 });
