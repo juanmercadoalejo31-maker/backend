@@ -1,4 +1,5 @@
-// server.js - VERSIÓN ACTUALIZADA CON CORS PARA PRODUCCIÓN
+// server.js - VERSIÓN CORREGIDA
+
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
@@ -13,8 +14,6 @@ const medicamentoRoutes = require("./routes/medicamentoRoutes");
 const comidaRoutes = require("./routes/comidaRoutes");
 const actividadRoutes = require("./routes/actividadRoutes");
 const hidratacionRoutes = require("./routes/hidratacionRoutes");
-
-// IA - Ruta de chat SIN IA (respuestas predefinidas)
 const iaRoutes = require("./routes/iaRoutes");
 
 // Cargar variables de entorno
@@ -26,36 +25,26 @@ connectDB();
 const app = express();
 
 // ============================================
-// MIDDLEWARES
+// CONFIGURACIÓN CORS - ¡VERSIÓN CORREGIDA!
 // ============================================
 
-// ============================================
-// CONFIGURACIÓN CORS - ¡SOLUCIÓN DEFINITIVA!
-// ============================================
-
-// Permitir todas las origins (para producción)
+// Configuración CORS básica
 app.use(cors({
-  origin: '*', // ← PERMITE TODAS LAS ORIGINS
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: [
-    'Content-Type', 
-    'Authorization', 
-    'Accept', 
-    'Origin', 
-    'X-Requested-With'
-  ],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
   credentials: true,
   optionsSuccessStatus: 200
 }));
 
-// Manejar explícitamente las peticiones OPTIONS (preflight)
-app.options('*', cors());
+// NO USES app.options('*', cors()) - ¡QUITA ESTA LÍNEA!
+// app.options('*', cors()); // ← ELIMINA ESTA LÍNEA
 
 // Parsear JSON
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Log de peticiones (útil para depuración)
+// Log de peticiones
 app.use((req, res, next) => {
   console.log(`📡 ${req.method} ${req.url}`);
   if (req.headers.authorization) {
@@ -104,25 +93,12 @@ app.get("/api/health", (req, res) => {
 // RUTAS DE LA API
 // ============================================
 
-// Autenticación
 app.use("/api/auth", authRoutes);
-
-// Glucosa
 app.use("/api/glucosa", glucosaRoutes);
-
-// Medicamentos
 app.use("/api/medicamentos", medicamentoRoutes);
-
-// Comidas
 app.use("/api/comidas", comidaRoutes);
-
-// Actividades físicas
 app.use("/api/actividades", actividadRoutes);
-
-// Hidratación
 app.use("/api/hidratacion", hidratacionRoutes);
-
-// IA - Chat con respuestas predefinidas (SIN IA externa)
 app.use("/api/ia", iaRoutes);
 
 // ============================================
