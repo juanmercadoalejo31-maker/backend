@@ -21,9 +21,6 @@ const iaRoutes = require("./routes/iaRoutes");
 // NUEVA RUTA PROLOG
 const prologRoutes = require("./routes/prologRoutes");
 
-// NUEVA RUTA CHAT
-const chatRoutes = require("./routes/chatRoutes");
-
 // ============================================
 // CONFIGURACIÓN
 // ============================================
@@ -90,8 +87,7 @@ app.get("/", (req, res) => {
       actividades: "/api/actividades",
       hidratacion: "/api/hidratacion",
       ia: "/api/ia",
-      prolog: "/api/prolog",
-      chat: "/api/chat"
+      prolog: "/api/prolog"
     }
   });
 
@@ -150,16 +146,11 @@ app.use(
   iaRoutes
 );
 
-// RUTA PROLOG
+// NUEVA RUTA PROLOG
+
 app.use(
   "/api/prolog",
   prologRoutes
-);
-
-// RUTA CHAT
-app.use(
-  "/api/chat",
-  chatRoutes
 );
 
 // ============================================
@@ -204,51 +195,23 @@ app.listen(PORT, () => {
   console.log(`📡 Puerto: ${PORT}`);
   console.log(`🌐 URL: http://localhost:${PORT}`);
   console.log("=================================");
-  console.log("📋 ENDPOINTS DISPONIBLES");
-  console.log("=================================");
-  console.log("📌 PRINCIPALES");
+  console.log("📋 ENDPOINTS");
   console.log("GET  /");
   console.log("GET  /api/health");
-  console.log("");
-  console.log("📌 AUTENTICACIÓN");
   console.log("POST /api/auth/register");
   console.log("POST /api/auth/login");
-  console.log("");
-  console.log("📌 GLUCOSA");
   console.log("GET  /api/glucosa");
   console.log("POST /api/glucosa");
-  console.log("");
-  console.log("📌 MEDICAMENTOS");
   console.log("GET  /api/medicamentos");
   console.log("POST /api/medicamentos");
-  console.log("PUT  /api/medicamentos/:id");
-  console.log("DELETE /api/medicamentos/:id");
-  console.log("");
-  console.log("📌 COMIDAS");
   console.log("GET  /api/comidas");
   console.log("POST /api/comidas");
-  console.log("PUT  /api/comidas/:id");
-  console.log("DELETE /api/comidas/:id");
-  console.log("");
-  console.log("📌 ACTIVIDADES");
   console.log("GET  /api/actividades");
   console.log("POST /api/actividades");
-  console.log("");
-  console.log("📌 HIDRATACIÓN");
   console.log("GET  /api/hidratacion");
   console.log("POST /api/hidratacion/vaso");
-  console.log("");
-  console.log("📌 IA");
   console.log("POST /api/ia/chat");
-  console.log("");
-  console.log("📌 PROLOG");
   console.log("POST /api/prolog/analizar");
-  console.log("POST /api/prolog/chat");
-  console.log("POST /api/prolog/recomendacion");
-  console.log("GET  /api/prolog/estado");
-  console.log("");
-  console.log("📌 CHAT");
-  console.log("POST /api/chat");
   console.log("=================================\n");
 
 });
