@@ -1,10 +1,12 @@
-// server.js - VERSIÓN CORREGIDA
+// ============================================
+// server.js
+// ============================================
 
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
-const path = require("path");
 
+// Conexión BD
 const connectDB = require("./config/db");
 
 // Rutas
@@ -16,44 +18,55 @@ const actividadRoutes = require("./routes/actividadRoutes");
 const hidratacionRoutes = require("./routes/hidratacionRoutes");
 const iaRoutes = require("./routes/iaRoutes");
 
-// Cargar variables de entorno
+// NUEVA RUTA PROLOG
+const prologRoutes = require("./routes/prologRoutes");
+
+// ============================================
+// CONFIGURACIÓN
+// ============================================
+
 dotenv.config();
 
-// Conectar MongoDB
 connectDB();
 
 const app = express();
 
 // ============================================
-// CONFIGURACIÓN CORS - ¡VERSIÓN CORREGIDA!
+// MIDDLEWARES
 // ============================================
 
-// Configuración CORS básica
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
-  credentials: true,
-  optionsSuccessStatus: 200
-}));
+app.use(
+  cors({
+    origin: "*",
+    methods: [
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE",
+      "PATCH"
+    ],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization"
+    ]
+  })
+);
 
-// NO USES app.options('*', cors()) - ¡QUITA ESTA LÍNEA!
-// app.options('*', cors()); // ← ELIMINA ESTA LÍNEA
-
-// Parsear JSON
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Log de peticiones
+// ============================================
+// LOG DE PETICIONES
+// ============================================
+
 app.use((req, res, next) => {
-  console.log(`📡 ${req.method} ${req.url}`);
-  if (req.headers.authorization) {
-    console.log('🔑 Token presente:', req.headers.authorization.substring(0, 30) + '...');
-  }
-  if (req.method === 'POST' || req.method === 'PUT') {
-    console.log('📦 Body:', req.body);
-  }
+
+  console.log(
+    `📡 ${req.method} ${req.originalUrl}`
+  );
+
   next();
+
 });
 
 // ============================================
@@ -61,102 +74,144 @@ app.use((req, res, next) => {
 // ============================================
 
 app.get("/", (req, res) => {
+
   res.json({
     mensaje: "API GlucoControl funcionando",
     version: "1.0.0",
-    modo: "SIN IA - Respuestas predefinidas",
-    cors: "Habilitado para todas las origins",
-    endpoints: {
-      auth: "/api/auth",
+
+    modulos: {
+      autenticacion: "/api/auth",
       glucosa: "/api/glucosa",
       medicamentos: "/api/medicamentos",
       comidas: "/api/comidas",
       actividades: "/api/actividades",
       hidratacion: "/api/hidratacion",
-      chat: "/api/ia/chat"
+      ia: "/api/ia",
+      prolog: "/api/prolog"
     }
   });
+
 });
 
-// Health check
+// ============================================
+// HEALTH CHECK
+// ============================================
+
 app.get("/api/health", (req, res) => {
-  res.json({
-    status: "ok",
-    timestamp: new Date().toISOString(),
-    modo: "sin_ia",
-    database: "connected",
-    cors: "enabled"
+
+  res.status(200).json({
+    estado: "OK",
+    servidor: "Activo",
+    fecha: new Date()
   });
+
 });
 
 // ============================================
-// RUTAS DE LA API
+// RUTAS API
 // ============================================
 
-app.use("/api/auth", authRoutes);
-app.use("/api/glucosa", glucosaRoutes);
-app.use("/api/medicamentos", medicamentoRoutes);
-app.use("/api/comidas", comidaRoutes);
-app.use("/api/actividades", actividadRoutes);
-app.use("/api/hidratacion", hidratacionRoutes);
-app.use("/api/ia", iaRoutes);
+app.use(
+  "/api/auth",
+  authRoutes
+);
+
+app.use(
+  "/api/glucosa",
+  glucosaRoutes
+);
+
+app.use(
+  "/api/medicamentos",
+  medicamentoRoutes
+);
+
+app.use(
+  "/api/comidas",
+  comidaRoutes
+);
+
+app.use(
+  "/api/actividades",
+  actividadRoutes
+);
+
+app.use(
+  "/api/hidratacion",
+  hidratacionRoutes
+);
+
+app.use(
+  "/api/ia",
+  iaRoutes
+);
+
+// NUEVA RUTA PROLOG
+
+app.use(
+  "/api/prolog",
+  prologRoutes
+);
 
 // ============================================
-// MANEJO DE ERRORES
+// RUTA NO ENCONTRADA
 // ============================================
 
-// Error 404 - Ruta no encontrada
 app.use((req, res) => {
-  console.log(`❌ 404: ${req.method} ${req.url}`);
+
   res.status(404).json({
     mensaje: "Ruta no encontrada",
-    ruta: req.url,
-    metodo: req.method
+    ruta: req.originalUrl
   });
+
 });
 
-// Error 500 - Error interno del servidor
+// ============================================
+// ERRORES
+// ============================================
+
 app.use((err, req, res, next) => {
-  console.error("❌ Error interno:", err.stack);
-  
+
+  console.error(err.stack);
+
   res.status(500).json({
-    mensaje: "Error interno del servidor",
-    error: process.env.NODE_ENV === "development" ? err.message : undefined
+    mensaje: "Error interno del servidor"
   });
+
 });
 
 // ============================================
 // INICIAR SERVIDOR
 // ============================================
 
-const PORT = process.env.PORT || 5000;
+const PORT =
+  process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log("\n========================================");
-  console.log(`🚀 Servidor ejecutándose en puerto ${PORT}`);
-  console.log(`📡 URL: http://localhost:${PORT}`);
-  console.log("========================================");
-  console.log("📋 ENDPOINTS DISPONIBLES:");
-  console.log(`   GET  /                          - Información general`);
-  console.log(`   GET  /api/health                - Health check`);
-  console.log(`   POST /api/auth/register         - Registro de usuario`);
-  console.log(`   POST /api/auth/login            - Login de usuario`);
-  console.log(`   GET  /api/auth/profile          - Perfil de usuario`);
-  console.log(`   PUT  /api/auth/profile          - Actualizar perfil`);
-  console.log(`   GET  /api/glucosa               - Obtener glucosa`);
-  console.log(`   POST /api/glucosa               - Registrar glucosa`);
-  console.log(`   GET  /api/medicamentos          - Obtener medicamentos`);
-  console.log(`   POST /api/medicamentos          - Agregar medicamento`);
-  console.log(`   GET  /api/comidas               - Obtener comidas`);
-  console.log(`   POST /api/comidas               - Registrar comida`);
-  console.log(`   GET  /api/actividades           - Obtener actividades`);
-  console.log(`   POST /api/actividades           - Registrar actividad`);
-  console.log(`   GET  /api/hidratacion           - Obtener hidratación`);
-  console.log(`   POST /api/hidratacion/vaso      - Registrar vaso de agua`);
-  console.log(`   POST /api/ia/chat               - Chat con respuestas predefinidas`);
-  console.log(`   GET  /api/ia/test               - Probar chat`);
-  console.log("========================================");
-  console.log("🤖 MODO: SIN IA - Respuestas predefinidas");
-  console.log("🌐 CORS: Habilitado para todas las origins");
-  console.log("========================================\n");
+
+  console.log("\n=================================");
+  console.log("🚀 GLUCOCONTROL API");
+  console.log("=================================");
+  console.log(`📡 Puerto: ${PORT}`);
+  console.log(`🌐 URL: http://localhost:${PORT}`);
+  console.log("=================================");
+  console.log("📋 ENDPOINTS");
+  console.log("GET  /");
+  console.log("GET  /api/health");
+  console.log("POST /api/auth/register");
+  console.log("POST /api/auth/login");
+  console.log("GET  /api/glucosa");
+  console.log("POST /api/glucosa");
+  console.log("GET  /api/medicamentos");
+  console.log("POST /api/medicamentos");
+  console.log("GET  /api/comidas");
+  console.log("POST /api/comidas");
+  console.log("GET  /api/actividades");
+  console.log("POST /api/actividades");
+  console.log("GET  /api/hidratacion");
+  console.log("POST /api/hidratacion/vaso");
+  console.log("POST /api/ia/chat");
+  console.log("POST /api/prolog/analizar");
+  console.log("=================================\n");
+
 });
